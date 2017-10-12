@@ -45,3 +45,5 @@ endif
 
 clean:
 	rm *.o dxflib/*.o $(EXECUTABLE)
+
+# vim: tabstop=4 noexpandtab shiftwidth=4 softtabstop=4
