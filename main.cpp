@@ -75,13 +75,16 @@ void usage() {
 
 void testReading(char* file) {
 	// Load DXF file into memory:
-	std::cout << "Reading file " << file << "...\n";
+	std::cerr << "Reading file " << file << "...\n";
 	ObjCreationAdapter* creationClass = new ObjCreationAdapter();
 	DL_Dxf* dxf = new DL_Dxf();
 	if (!dxf->in(file, creationClass)) { // if file open failed
 		std::cerr << file << " could not be opened.\n";
 		return;
 	}
+	// Write the collected stuff to sysout!
+	creationClass->sysOutAll();
+	// Delete stuff
 	delete dxf;
 	delete creationClass;
 }

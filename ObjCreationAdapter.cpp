@@ -25,37 +25,77 @@
 #include "ObjCreationAdapter.h"
 
 #include <iostream>
-#include <stdio.h>
+#include <cstdio>
 
 
 /**
  * Default constructor.
  */
-ObjCreationAdapter::ObjCreationAdapter() {}
+ObjCreationAdapter::ObjCreationAdapter() {
+}
 
+// TODO: when I have time for it, these should go in the Objmaster as saving an Obj and here we would build the Obj and not the string maybe
+void ObjCreationAdapter::sysOutAll() {
+	for(auto layer : layersVertices) {
+		std::string layerName = layer.first;
+
+		// print the name of the layer
+		printf("o %s\n", layerName.c_str());
+
+		std::vector<ObjMaster::VertexElement> layerVertices = layer.second;
+		//For other stuff acccess it like this: std::vector<ObjMaster::VertexElement> layerVertices = layerVertices[layerName];
+		for(auto v : layerVertices) {
+			printf("v %f %f %f\n", v.x*METER, v.y*METER, v.z*METER);
+		}
+	}
+}
+
+// Local helper fun
+static inline void addV(
+		float x, float y, float z,
+	   	std::unordered_map<std::string, std::vector<ObjMaster::VertexElement>> &layersVertices,
+		std::string layerName) {
+	// Sanity check
+	auto vervec = layersVertices.find(layerName);
+	if(vervec == layersVertices.end()) {
+		// Haven't found the layer added earlier - should not happen!
+		fprintf(stderr, "WARN: layer %s has geometry (v) but was not defined earlier!", layerName.c_str());
+		// Create it right now...
+		layersVertices[layerName] = std::vector<ObjMaster::VertexElement>{};
+	}
+
+	// Add this new vertex to the end of that vector
+	layersVertices[layerName].push_back(ObjMaster::VertexElement{x, y, z});
+}
 
 /**
  * Sample implementation of the method which handles layers.
  */
 void ObjCreationAdapter::addLayer(const DL_LayerData& data) {
-	printf("LAYER: %s flags: %d\n", data.name.c_str(), data.flags);
+	fprintf(stderr, "LAYER: %s flags: %d\n", data.name.c_str(), data.flags);
 	printAttributes();
+
+	// Add an empty vector for da layerz
+	layersVertices[data.name] = std::vector<ObjMaster::VertexElement>();
 }
 
 /**
  * Sample implementation of the method which handles point entities.
  */
 void ObjCreationAdapter::addPoint(const DL_PointData& data) {
-	printf("POINT	 (%6.3f, %6.3f, %6.3f)\n",
+	fprintf(stderr, "POINT	 (%6.3f, %6.3f, %6.3f)\n",
 		   data.x, data.y, data.z);
 	printAttributes();
+
+	// Add the vertexes
+	addV(data.x, data.y, data.z, layersVertices, attributes.getLayer());
 }
 
 /**
  * Sample implementation of the method which handles line entities.
  */
 void ObjCreationAdapter::addLine(const DL_LineData& data) {
-	printf("LINE	 (%6.3f, %6.3f, %6.3f) (%6.3f, %6.3f, %6.3f)\n",
+	fprintf(stderr, "LINE	 (%6.3f, %6.3f, %6.3f) (%6.3f, %6.3f, %6.3f)\n",
 		   data.x1, data.y1, data.z1, data.x2, data.y2, data.z2);
 	printAttributes();
 }
@@ -64,7 +104,7 @@ void ObjCreationAdapter::addLine(const DL_LineData& data) {
  * Sample implementation of the method which handles arc entities.
  */
 void ObjCreationAdapter::addArc(const DL_ArcData& data) {
-	printf("ARC		 (%6.3f, %6.3f, %6.3f) %6.3f, %6.3f, %6.3f\n",
+	fprintf(stderr, "ARC		 (%6.3f, %6.3f, %6.3f) %6.3f, %6.3f, %6.3f\n",
 		   data.cx, data.cy, data.cz,
 		   data.radius, data.angle1, data.angle2);
 	printAttributes();
@@ -74,7 +114,7 @@ void ObjCreationAdapter::addArc(const DL_ArcData& data) {
  * Sample implementation of the method which handles circle entities.
  */
 void ObjCreationAdapter::addCircle(const DL_CircleData& data) {
-	printf("CIRCLE	 (%6.3f, %6.3f, %6.3f) %6.3f\n",
+	fprintf(stderr, "CIRCLE	 (%6.3f, %6.3f, %6.3f) %6.3f\n",
 		   data.cx, data.cy, data.cz,
 		   data.radius);
 	printAttributes();
@@ -85,8 +125,8 @@ void ObjCreationAdapter::addCircle(const DL_CircleData& data) {
  * Sample implementation of the method which handles polyline entities.
  */
 void ObjCreationAdapter::addPolyline(const DL_PolylineData& data) {
-	printf("POLYLINE \n");
-	printf("flags: %d\n", (int)data.flags);
+	fprintf(stderr, "POLYLINE \n");
+	fprintf(stderr, "flags: %d\n", (int)data.flags);
 	printAttributes();
 }
 
@@ -95,17 +135,20 @@ void ObjCreationAdapter::addPolyline(const DL_PolylineData& data) {
  * Sample implementation of the method which handles vertices.
  */
 void ObjCreationAdapter::addVertex(const DL_VertexData& data) {
-	printf("VERTEX	 (%6.3f, %6.3f, %6.3f) %6.3f\n",
+	fprintf(stderr, "VERTEX	 (%6.3f, %6.3f, %6.3f) %6.3f\n",
 		   data.x, data.y, data.z,
 		   data.bulge);
 	printAttributes();
+
+	// Add the vertexes
+	addV(data.x, data.y, data.z, layersVertices, attributes.getLayer());
 }
 
 
 void ObjCreationAdapter::add3dFace(const DL_3dFaceData& data) {
-	printf("3DFACE\n");
+	fprintf(stderr, "3DFACE\n");
 	for (int i=0; i<4; i++) {
-		printf("   corner %d: %6.3f %6.3f %6.3f\n", 
+		fprintf(stderr, "   corner %d: %6.3f %6.3f %6.3f\n", 
 			i, data.x[i], data.y[i], data.z[i]);
 	}
 	printAttributes();
@@ -113,26 +156,26 @@ void ObjCreationAdapter::add3dFace(const DL_3dFaceData& data) {
 
 
 void ObjCreationAdapter::printAttributes() {
-	printf("  Attributes: Layer: %s, ", attributes.getLayer().c_str());
-	printf(" Color: ");
+	fprintf(stderr, "  Attributes: Layer: %s, ", attributes.getLayer().c_str());
+	fprintf(stderr, " Color: ");
 	if (attributes.getColor()==256)	{
-		printf("BYLAYER");
+		fprintf(stderr, "BYLAYER");
 	} else if (attributes.getColor()==0) {
-		printf("BYBLOCK");
+		fprintf(stderr, "BYBLOCK");
 	} else {
-		printf("%d", attributes.getColor());
+		fprintf(stderr, "%d", attributes.getColor());
 	}
-	printf(" Width: ");
+	fprintf(stderr, " Width: ");
 	if (attributes.getWidth()==-1) {
-		printf("BYLAYER");
+		fprintf(stderr, "BYLAYER");
 	} else if (attributes.getWidth()==-2) {
-		printf("BYBLOCK");
+		fprintf(stderr, "BYBLOCK");
 	} else if (attributes.getWidth()==-3) {
-		printf("DEFAULT");
+		fprintf(stderr, "DEFAULT");
 	} else {
-		printf("%d", attributes.getWidth());
+		fprintf(stderr, "%d", attributes.getWidth());
 	}
-	printf(" Type: %s\n", attributes.getLinetype().c_str());
+	fprintf(stderr, " Type: %s\n", attributes.getLinetype().c_str());
 }
 	
 // vim: tabstop=4 noexpandtab shiftwidth=4 softtabstop=4

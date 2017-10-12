@@ -28,8 +28,11 @@
 #include "dxflib/dl_creationadapter.h"
 #include "ObjMaster/VertexElement.h"
 
-#include <map>
+#include <unordered_map>
 
+// The unit used for calculating the CAD values in meters in most cases
+// TODO: This only handles common cases though but it is good for now!
+#define METER 0.001
 
 /**
  * This class takes care of the entities read from the file.
@@ -42,7 +45,7 @@ class ObjCreationAdapter : public DL_CreationAdapter {
 private:
 	// TODO: all kind of mappings and stuffz
 	// The layer_name -> vertices mapping
-	std::map<std::string, std::vector<ObjMaster::VertexElement>> layerVertices;
+	std::unordered_map<std::string, std::vector<ObjMaster::VertexElement>> layersVertices;
 public:
 	ObjCreationAdapter();
 
@@ -56,6 +59,9 @@ public:
 	virtual void add3dFace(const DL_3dFaceData& data);
 
 	void printAttributes();
+
+	// Writes all collected values out to sysout
+	void sysOutAll();
 };
 
 #endif
