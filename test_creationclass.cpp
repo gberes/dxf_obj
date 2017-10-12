@@ -31,13 +31,13 @@
 /**
  * Default constructor.
  */
-Test_CreationClass::Test_CreationClass() {}
+ObjCreationAdapter::ObjCreationAdapter() {}
 
 
 /**
  * Sample implementation of the method which handles layers.
  */
-void Test_CreationClass::addLayer(const DL_LayerData& data) {
+void ObjCreationAdapter::addLayer(const DL_LayerData& data) {
     printf("LAYER: %s flags: %d\n", data.name.c_str(), data.flags);
     printAttributes();
 }
@@ -45,7 +45,7 @@ void Test_CreationClass::addLayer(const DL_LayerData& data) {
 /**
  * Sample implementation of the method which handles point entities.
  */
-void Test_CreationClass::addPoint(const DL_PointData& data) {
+void ObjCreationAdapter::addPoint(const DL_PointData& data) {
     printf("POINT    (%6.3f, %6.3f, %6.3f)\n",
            data.x, data.y, data.z);
     printAttributes();
@@ -54,7 +54,7 @@ void Test_CreationClass::addPoint(const DL_PointData& data) {
 /**
  * Sample implementation of the method which handles line entities.
  */
-void Test_CreationClass::addLine(const DL_LineData& data) {
+void ObjCreationAdapter::addLine(const DL_LineData& data) {
     printf("LINE     (%6.3f, %6.3f, %6.3f) (%6.3f, %6.3f, %6.3f)\n",
            data.x1, data.y1, data.z1, data.x2, data.y2, data.z2);
     printAttributes();
@@ -63,7 +63,7 @@ void Test_CreationClass::addLine(const DL_LineData& data) {
 /**
  * Sample implementation of the method which handles arc entities.
  */
-void Test_CreationClass::addArc(const DL_ArcData& data) {
+void ObjCreationAdapter::addArc(const DL_ArcData& data) {
     printf("ARC      (%6.3f, %6.3f, %6.3f) %6.3f, %6.3f, %6.3f\n",
            data.cx, data.cy, data.cz,
            data.radius, data.angle1, data.angle2);
@@ -73,7 +73,7 @@ void Test_CreationClass::addArc(const DL_ArcData& data) {
 /**
  * Sample implementation of the method which handles circle entities.
  */
-void Test_CreationClass::addCircle(const DL_CircleData& data) {
+void ObjCreationAdapter::addCircle(const DL_CircleData& data) {
     printf("CIRCLE   (%6.3f, %6.3f, %6.3f) %6.3f\n",
            data.cx, data.cy, data.cz,
            data.radius);
@@ -84,7 +84,7 @@ void Test_CreationClass::addCircle(const DL_CircleData& data) {
 /**
  * Sample implementation of the method which handles polyline entities.
  */
-void Test_CreationClass::addPolyline(const DL_PolylineData& data) {
+void ObjCreationAdapter::addPolyline(const DL_PolylineData& data) {
     printf("POLYLINE \n");
     printf("flags: %d\n", (int)data.flags);
     printAttributes();
@@ -94,7 +94,7 @@ void Test_CreationClass::addPolyline(const DL_PolylineData& data) {
 /**
  * Sample implementation of the method which handles vertices.
  */
-void Test_CreationClass::addVertex(const DL_VertexData& data) {
+void ObjCreationAdapter::addVertex(const DL_VertexData& data) {
     printf("VERTEX   (%6.3f, %6.3f, %6.3f) %6.3f\n",
            data.x, data.y, data.z,
            data.bulge);
@@ -102,7 +102,7 @@ void Test_CreationClass::addVertex(const DL_VertexData& data) {
 }
 
 
-void Test_CreationClass::add3dFace(const DL_3dFaceData& data) {
+void ObjCreationAdapter::add3dFace(const DL_3dFaceData& data) {
     printf("3DFACE\n");
     for (int i=0; i<4; i++) {
         printf("   corner %d: %6.3f %6.3f %6.3f\n", 
@@ -112,7 +112,7 @@ void Test_CreationClass::add3dFace(const DL_3dFaceData& data) {
 }
 
 
-void Test_CreationClass::printAttributes() {
+void ObjCreationAdapter::printAttributes() {
     printf("  Attributes: Layer: %s, ", attributes.getLayer().c_str());
     printf(" Color: ");
     if (attributes.getColor()==256)	{

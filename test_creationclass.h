@@ -36,9 +36,9 @@
  *
  * @author Andrew Mustun
  */
-class Test_CreationClass : public DL_CreationAdapter {
+class ObjCreationAdapter : public DL_CreationAdapter {
 public:
-    Test_CreationClass();
+    ObjCreationAdapter();
 
     virtual void addLayer(const DL_LayerData& data);
     virtual void addPoint(const DL_PointData& data);

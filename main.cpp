@@ -76,7 +76,7 @@ void usage() {
 void testReading(char* file) {
     // Load DXF file into memory:
     std::cout << "Reading file " << file << "...\n";
-    Test_CreationClass* creationClass = new Test_CreationClass();
+    ObjCreationAdapter* creationClass = new ObjCreationAdapter();
     DL_Dxf* dxf = new DL_Dxf();
     if (!dxf->in(file, creationClass)) { // if file open failed
         std::cerr << file << " could not be opened.\n";
