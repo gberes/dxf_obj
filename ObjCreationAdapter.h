@@ -38,7 +38,9 @@
  */
 class ObjCreationAdapter : public DL_CreationAdapter {
 private:
-
+	// TODO: all kind of mappings and stuffz
+	// The layer_name -> vertices mapping
+	std::map<std::string, std::vector<Vertex>> layerVertices;
 public:
 	ObjCreationAdapter();
 
