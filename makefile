@@ -24,7 +24,7 @@ else
 endif
 endif
 
-SOURCES=main.cpp ObjCreationAdapter.cpp dxflib/dl_dxf.cpp dxflib/dl_writer_ascii.cpp
+SOURCES=main.cpp ObjCreationAdapter.cpp $(wildcard dxflib/*.cpp) $(wildcard ObjMaster/*.cpp)
 OBJECTS=$(SOURCES:.cpp=.o)
 EXECUTABLE=dxf_obj
 
@@ -44,6 +44,6 @@ endif
 	$(CC) $(CFLAGS) $< -o $@
 
 clean:
-	rm *.o dxflib/*.o $(EXECUTABLE)
+	rm *.o dxflib/*.o ObjMaster/*.o $(EXECUTABLE)
 
 # vim: tabstop=4 noexpandtab shiftwidth=4 softtabstop=4

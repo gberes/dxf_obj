@@ -26,7 +26,9 @@
 #define TEST_CREATIONCLASS_H
 
 #include "dxflib/dl_creationadapter.h"
+#include "ObjMaster/VertexElement.h"
 
+#include <map>
 
 
 /**
@@ -40,7 +42,7 @@ class ObjCreationAdapter : public DL_CreationAdapter {
 private:
 	// TODO: all kind of mappings and stuffz
 	// The layer_name -> vertices mapping
-	std::map<std::string, std::vector<Vertex>> layerVertices;
+	std::map<std::string, std::vector<ObjMaster::VertexElement>> layerVertices;
 public:
 	ObjCreationAdapter();
 
