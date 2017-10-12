@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
 
     testReading(argv[1]);
 
-    testWriting();
+    //testWriting();
 
     return 0;
 }
@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
  * line argument.
  */
 void usage() {
-    std::cout << "\nUsage: test <DXF file>\n\n";
+    std::cout << "\nUsage: dxf_obj <DXF file>\n\n";
 }
 
 
