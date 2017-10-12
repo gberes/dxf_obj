@@ -29,7 +29,7 @@
 #include "dxflib/dl_dxf.h"
 #include "dxflib/dl_creationadapter.h"
 
-#include "test_creationclass.h"
+#include "ObjCreationAdapter.h"
 
 void usage();
 void testReading(char* file);

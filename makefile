@@ -24,7 +24,7 @@ else
 endif
 endif
 
-SOURCES=main.cpp test_creationclass.cpp dxflib/dl_dxf.cpp dxflib/dl_writer_ascii.cpp
+SOURCES=main.cpp ObjCreationAdapter.cpp dxflib/dl_dxf.cpp dxflib/dl_writer_ascii.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 EXECUTABLE=dxf_obj
 
