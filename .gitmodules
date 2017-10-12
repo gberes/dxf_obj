@@ -1,0 +1,3 @@
+[submodule "ObjMaster"]
+	path = ObjMaster
+	url = https://github.com/prenex/ObjMaster.git
