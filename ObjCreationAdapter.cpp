@@ -1,27 +1,3 @@
-/*
- * @file test_creationclass.cpp
- */
-
-/*****************************************************************************
-**	$Id: test_creationclass.cpp 8865 2008-02-04 18:54:02Z andrew $
-**
-**	This is part of the dxflib library
-**	Copyright (C) 2001 Andrew Mustun
-**
-**	This program is free software; you can redistribute it and/or modify
-**	it under the terms of the GNU Library General Public License as
-**	published by the Free Software Foundation.
-**
-**	This program is distributed in the hope that it will be useful,
-**	but WITHOUT ANY WARRANTY; without even the implied warranty of
-**	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-**	GNU Library General Public License for more details.
-**
-**	You should have received a copy of the GNU Library General Public License
-**	along with this program; if not, write to the Free Software
-**	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-******************************************************************************/
-
 #include "ObjCreationAdapter.h"
 
 #include <iostream>
@@ -45,7 +21,7 @@ void ObjCreationAdapter::sysOutAll() {
 		std::vector<ObjMaster::VertexElement> layerVertices = layer.second;
 		//For other stuff acccess it like this: std::vector<ObjMaster::VertexElement> layerVertices = layerVertices[layerName];
 		for(auto v : layerVertices) {
-			printf("v %f %f %f\n", v.x*METER, v.y*METER, v.z*METER);
+			printf("v %f %f %f\n", v.x, v.y, v.z);
 		}
 	}
 }
@@ -65,7 +41,7 @@ static inline void addV(
 	}
 
 	// Add this new vertex to the end of that vector
-	layersVertices[layerName].push_back(ObjMaster::VertexElement{x, y, z});
+	layersVertices[layerName].push_back(ObjMaster::VertexElement{x*METER, y*METER, z*METER});
 }
 
 /**
@@ -89,6 +65,7 @@ void ObjCreationAdapter::addPoint(const DL_PointData& data) {
 
 	// Add the vertexes
 	addV(data.x, data.y, data.z, layersVertices, attributes.getLayer());
+	// TODO: Add line from the "previous" vertex if there is any
 }
 
 /**
@@ -98,6 +75,11 @@ void ObjCreationAdapter::addLine(const DL_LineData& data) {
 	fprintf(stderr, "LINE	 (%6.3f, %6.3f, %6.3f) (%6.3f, %6.3f, %6.3f)\n",
 		   data.x1, data.y1, data.z1, data.x2, data.y2, data.z2);
 	printAttributes();
+
+	// Add the vertexes
+	addV(data.x1, data.y1, data.z1, layersVertices, attributes.getLayer());
+	addV(data.x2, data.y2, data.z2, layersVertices, attributes.getLayer());
+	// TODO: Add a line referencing these two vertextes in the final result
 }
 
 /**
@@ -108,6 +90,9 @@ void ObjCreationAdapter::addArc(const DL_ArcData& data) {
 		   data.cx, data.cy, data.cz,
 		   data.radius, data.angle1, data.angle2);
 	printAttributes();
+
+	// TODO: Really bad "approximation" of arcs!!! to put a point there!
+	addV(data.cx, data.cy, data.cz, layersVertices, attributes.getLayer());
 }
 
 /**
@@ -118,6 +103,9 @@ void ObjCreationAdapter::addCircle(const DL_CircleData& data) {
 		   data.cx, data.cy, data.cz,
 		   data.radius);
 	printAttributes();
+
+	// TODO: it would be nice to at least build a 4-line square where the circle is...
+	addV(data.cx, data.cy, data.cz, layersVertices, attributes.getLayer());
 }
 
 
@@ -128,6 +116,8 @@ void ObjCreationAdapter::addPolyline(const DL_PolylineData& data) {
 	fprintf(stderr, "POLYLINE \n");
 	fprintf(stderr, "flags: %d\n", (int)data.flags);
 	printAttributes();
+
+	// TODO: set some random flag that the following vertices will be one polyline?
 }
 
 
@@ -142,16 +132,23 @@ void ObjCreationAdapter::addVertex(const DL_VertexData& data) {
 
 	// Add the vertexes
 	addV(data.x, data.y, data.z, layersVertices, attributes.getLayer());
-}
 
+	// TODO: Handle polylines (more functions are necessary for handling end of it)
+}
 
 void ObjCreationAdapter::add3dFace(const DL_3dFaceData& data) {
 	fprintf(stderr, "3DFACE\n");
 	for (int i=0; i<4; i++) {
 		fprintf(stderr, "   corner %d: %6.3f %6.3f %6.3f\n", 
 			i, data.x[i], data.y[i], data.z[i]);
+		
+		// Add this vertex to the list
+		addV(data.x[i], data.y[i], data.z[i], layersVertices, attributes.getLayer());
 	}
 	printAttributes();
+
+	// TODO: Create a face in for the 3 or 4 vertices (at least for triangles!!!)
+	// TODO: maybe always triangulate???
 }
 
 

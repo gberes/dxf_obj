@@ -1,26 +1,4 @@
-/*
- * @file main.cpp
- */
-
-/*****************************************************************************
-**	$Id: main.cpp 3591 2006-10-18 21:23:25Z andrew $
-**
-**	This is part of the dxflib library
-**	Copyright (C) 2000-2001 Andrew Mustun
-**
-**	This program is free software; you can redistribute it and/or modify
-**	it under the terms of the GNU Library General Public License as
-**	published by the Free Software Foundation.
-**
-**	This program is distributed in the hope that it will be useful,
-**	but WITHOUT ANY WARRANTY; without even the implied warranty of
-**	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-**	GNU Library General Public License for more details.
-**
-**	You should have received a copy of the GNU Library General Public License
-**	along with this program; if not, write to the Free Software
-**	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-******************************************************************************/
+// Changed from DXFLIB examples
 
 #include <iostream>
 #include <stdlib.h>
@@ -32,7 +10,7 @@
 #include "ObjCreationAdapter.h"
 
 void usage();
-void testReading(char* file);
+void convertToObj(char* file);
 void testWriting();
 
 
@@ -55,7 +33,7 @@ int main(int argc, char** argv) {
 		return 0;
 	}
 
-	testReading(argv[1]);
+	convertToObj(argv[1]);
 
 	//testWriting();
 
@@ -72,8 +50,7 @@ void usage() {
 	std::cout << "\nUsage: dxf_obj <DXF file>\n\n";
 }
 
-
-void testReading(char* file) {
+void convertToObj(char* file) {
 	// Load DXF file into memory:
 	std::cerr << "Reading file " << file << "...\n";
 	ObjCreationAdapter* creationClass = new ObjCreationAdapter();
@@ -82,7 +59,7 @@ void testReading(char* file) {
 		std::cerr << file << " could not be opened.\n";
 		return;
 	}
-	// Write the collected stuff to sysout!
+	// Write the collected stuff as obj to sysout!
 	creationClass->sysOutAll();
 	// Delete stuff
 	delete dxf;
@@ -90,7 +67,7 @@ void testReading(char* file) {
 }
 
 
-
+// Tests DXF writing
 void testWriting() {
 	DL_Dxf* dxf = new DL_Dxf();
 	DL_Codes::version exportVersion = DL_Codes::AC1015;
