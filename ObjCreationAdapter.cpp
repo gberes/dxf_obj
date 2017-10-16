@@ -10,24 +10,23 @@
 ObjCreationAdapter::ObjCreationAdapter() {
 }
 
-// TODO: when I have time for it, these should go in the Objmaster as saving an Obj and here we would build the Obj and not the string maybe
-void ObjCreationAdapter::sysOutAll() {
-	for(auto layer : layersVertices) {
-		std::string layerName = layer.first;
-
-		// print the name of the layer
-		printf("o %s\n", layerName.c_str());
-
-		std::vector<ObjMaster::VertexElement> layerVertices = layer.second;
-		//For other stuff acccess it like this: std::vector<ObjMaster::VertexElement> layerVertices = layerVertices[layerName];
-		for(auto v : layerVertices) {
-			printf("v %f %f %f\n", v.x, v.y, v.z);
-		}
+// Local helper fun - only add edges with this please!
+void ObjCreationAdapter::addL(int b, int e, std::unordered_map<std::string, std::vector<ObjMaster::LineElement>> &layersLines, std::string layerName) {
+	// Sanity check
+	auto evec = layersLines.find(layerName);
+	if(evec == layersLines.end()) {
+		// Haven't found the layer added earlier - should not happen!
+		fprintf(stderr, "Layer %s has geometry (l)", layerName.c_str());
+		// Create it right now...
+		layersLines[layerName] = std::vector<ObjMaster::LineElement>{};
 	}
+
+	// Add this new vertex to the end of that vector
+	layersLines[layerName].push_back(ObjMaster::LineElement{b, e});
 }
 
-// Local helper fun
-static inline void addV(
+// Local helper fun - only add vertices with this please!
+void ObjCreationAdapter::addV(
 		float x, float y, float z,
 	   	std::unordered_map<std::string, std::vector<ObjMaster::VertexElement>> &layersVertices,
 		std::string layerName) {
@@ -35,13 +34,16 @@ static inline void addV(
 	auto vervec = layersVertices.find(layerName);
 	if(vervec == layersVertices.end()) {
 		// Haven't found the layer added earlier - should not happen!
-		fprintf(stderr, "WARN: layer %s has geometry (v) but was not defined earlier!", layerName.c_str());
+		fprintf(stderr, "WARN: layer %s has geometry (v)", layerName.c_str());
 		// Create it right now...
 		layersVertices[layerName] = std::vector<ObjMaster::VertexElement>{};
 	}
 
 	// Add this new vertex to the end of that vector
 	layersVertices[layerName].push_back(ObjMaster::VertexElement{x*METER, y*METER, z*METER});
+
+	// Increment the last vertex number
+	++lastVerNo;
 }
 
 /**
@@ -51,8 +53,8 @@ void ObjCreationAdapter::addLayer(const DL_LayerData& data) {
 	fprintf(stderr, "LAYER: %s flags: %d\n", data.name.c_str(), data.flags);
 	printAttributes();
 
-	// Add an empty vector for da layerz
-	layersVertices[data.name] = std::vector<ObjMaster::VertexElement>();
+	// Insert the name of the layer as probably there will be stuff for it
+	layerNames.insert(data.name);
 }
 
 /**
@@ -79,7 +81,9 @@ void ObjCreationAdapter::addLine(const DL_LineData& data) {
 	// Add the vertexes
 	addV(data.x1, data.y1, data.z1, layersVertices, attributes.getLayer());
 	addV(data.x2, data.y2, data.z2, layersVertices, attributes.getLayer());
-	// TODO: Add a line referencing these two vertextes in the final result
+	// Add a line referencing these two vertextes in the final result
+	// The two last vertices are the one we added right now above!
+	addL(lastVerNo-1, lastVerNo, layersLines, attributes.getLayer());
 }
 
 /**
@@ -174,5 +178,28 @@ void ObjCreationAdapter::printAttributes() {
 	}
 	fprintf(stderr, " Type: %s\n", attributes.getLinetype().c_str());
 }
-	
+
+// TODO: when I have time for it, these should go in the Objmaster as saving an Obj and here we would build the Obj and not the string maybe
+void ObjCreationAdapter::sysOutAll() {
+	for(auto layerName : layerNames) {
+
+		// print the name of the layer as object names
+		printf("o %s\n", layerName.c_str());
+
+		// Generate the vertices for that layer
+	   	std::vector<ObjMaster::VertexElement> layerVertices = layersVertices[layerName];
+		for(auto v : layerVertices) {
+			//printf("v %f %f %f\n", v.x, v.y, v.z);
+			printf("%s\n", v.asText().c_str());
+		}
+
+		// Generate the lines for that layer
+	   	std::vector<ObjMaster::LineElement> layerLines = layersLines[layerName];
+		for(auto l : layerLines) {
+			//printf("l %d %d\n", l.bVindex, l.eVindex);
+			printf("%s\n", l.asText().c_str());
+		}
+	}
+}
+
 // vim: tabstop=4 noexpandtab shiftwidth=4 softtabstop=4
