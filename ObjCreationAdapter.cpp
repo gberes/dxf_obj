@@ -12,6 +12,7 @@ ObjCreationAdapter::ObjCreationAdapter() {
 
 // Local helper fun - only add edges with this please!
 void ObjCreationAdapter::addL(int b, int e, std::unordered_map<std::string, std::vector<ObjMaster::LineElement>> &layersLines, std::string layerName) {
+	fprintf(stderr, "Added line %d, %d!\n", b, e);
 	// Sanity check
 	auto evec = layersLines.find(layerName);
 	if(evec == layersLines.end()) {
@@ -67,7 +68,18 @@ void ObjCreationAdapter::addPoint(const DL_PointData& data) {
 
 	// Add the vertexes
 	addV(data.x, data.y, data.z, layersVertices, attributes.getLayer());
-	// TODO: Add line from the "previous" vertex if there is any
+
+	// Handle polylines
+	if(polyLineState == PolyLineState::FIRST) {
+		// No line entity generation yet
+		polyLineState = PolyLineState::OTHER;
+	} else if(polyLineState == PolyLineState::OTHER) {
+		// We should generate a line connecting the last vertex and current!
+		// Add a line referencing these two vertexes in the final result
+		// The two last vertices are the one we added right now above and the earlier added one with addVertex
+		// TODO/FIXME: This way if there are points while the vertexes of a polyline they got part of it too (maybe ok)
+		addL(lastVerNo-1, lastVerNo, layersLines, attributes.getLayer());
+	}
 }
 
 /**
@@ -122,8 +134,18 @@ void ObjCreationAdapter::addPolyline(const DL_PolylineData& data) {
 	printAttributes();
 
 	// TODO: set some random flag that the following vertices will be one polyline?
+	polyLineState = PolyLineState::FIRST;
 }
 
+// POLY ENDS HERE (normally)
+void ObjCreationAdapter::endSequence() {
+	polyLineState = PolyLineState::NONE;
+}
+
+// POLY ENDS HERE (not so normal however)
+void ObjCreationAdapter::endBlock() {
+	polyLineState = PolyLineState::NONE;
+}
 
 /**
  * Sample implementation of the method which handles vertices.
@@ -134,10 +156,20 @@ void ObjCreationAdapter::addVertex(const DL_VertexData& data) {
 		   data.bulge);
 	printAttributes();
 
-	// Add the vertexes
+	// Add the vertex
 	addV(data.x, data.y, data.z, layersVertices, attributes.getLayer());
 
-	// TODO: Handle polylines (more functions are necessary for handling end of it)
+	// Handle polylines
+	if(polyLineState == PolyLineState::FIRST) {
+		// No line entity generation yet
+		polyLineState = PolyLineState::OTHER;
+	} else if(polyLineState == PolyLineState::OTHER) {
+		// We should generate a line connecting the last vertex and current!
+		// Add a line referencing these two vertexes in the final result
+		// The two last vertices are the one we added right now above and the earlier added one with addVertex
+		// TODO/FIXME: This way if there are points while the vertexes of a polyline they got part of it too (maybe ok)
+		addL(lastVerNo-1, lastVerNo, layersLines, attributes.getLayer());
+	}
 }
 
 void ObjCreationAdapter::add3dFace(const DL_3dFaceData& data) {

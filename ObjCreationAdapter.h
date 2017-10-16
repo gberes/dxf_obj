@@ -12,6 +12,16 @@
 // TODO: This only handles common cases though but it is good for now!
 #define METER 0.001f
 
+// Represent polyline states
+enum class PolyLineState {
+	/** There is no polyline going on now */
+   	NONE,
+	/** Waiting for the first point or vertex of a polyline */
+   	FIRST,
+	/** Waiting for the non-first point or vertex of a polyline */
+   	OTHER
+};
+
 /**
  * This class takes care of the entities read from the file.
  * Usually such a class would probably store the entities.
@@ -21,6 +31,8 @@
  */
 class ObjCreationAdapter : public DL_CreationAdapter {
 private:
+	// We are not in a polyline in the beginning of course
+	PolyLineState polyLineState = PolyLineState::NONE;
 	// Always contains the latest vertex number (across all layers)
 	// Necessary for lines and faces for proper indexing. Zero means there are no vertices yet, and 1 means the last vertex is the first one!
 	int lastVerNo = 0;
@@ -45,6 +57,8 @@ public:
 	virtual void addArc(const DL_ArcData& data);
 	virtual void addCircle(const DL_CircleData& data);
 	virtual void addPolyline(const DL_PolylineData& data);
+	virtual void endSequence();	// POLY ENDS HERE (normally)
+	virtual void endBlock();	// POLY ENDS HERE (not so normal however)
 	virtual void addVertex(const DL_VertexData& data);
 	virtual void add3dFace(const DL_3dFaceData& data);
 
