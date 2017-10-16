@@ -66,10 +66,12 @@ void ObjCreationAdapter::handleCommonVecVars(const std::string &key, std::tuple<
 	if(key == "$EXTMIN") {
 		// EXTMIN
 		extmin = val;
+		extmin_m = std::make_tuple(std::get<0>(val)*METER, std::get<1>(val)*METER, std::get<2>(val)*METER);
 		fprintf(stderr, "extmin found to be: [%f, %f, %f]\n", std::get<0>(val), std::get<1>(val), std::get<2>(val));
 	} else if(key == "$EXTMAX") {
 		// EXTMAX
 		extmax = val;
+		extmin_m = std::make_tuple(std::get<0>(val)*METER, std::get<1>(val)*METER, std::get<2>(val)*METER);
 		fprintf(stderr, "extmax found to be: [%f, %f, %f]\n", std::get<0>(val), std::get<1>(val), std::get<2>(val));
 	}
 }

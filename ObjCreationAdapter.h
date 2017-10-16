@@ -32,6 +32,9 @@ private:
 	// The borders of the drawing area - useful for clipping and stuff
 	std::tuple<double, double, double> extmin = std::make_tuple(std::numeric_limits<double>::min(), std::numeric_limits<double>::min(), std::numeric_limits<double>::min());
 	std::tuple<double, double, double> extmax = std::make_tuple(std::numeric_limits<double>::max(), std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
+	// meters
+	std::tuple<double, double, double> extmin_m = std::make_tuple(std::numeric_limits<double>::min(), std::numeric_limits<double>::min(), std::numeric_limits<double>::min());
+	std::tuple<double, double, double> extmax_m = std::make_tuple(std::numeric_limits<double>::max(), std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
 	
 	// We are not in a polyline in the beginning of course
 	PolyLineState polyLineState = PolyLineState::NONE;
