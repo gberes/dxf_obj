@@ -35,7 +35,7 @@ void ObjCreationAdapter::addV(
 	auto vervec = layersVertices.find(layerName);
 	if(vervec == layersVertices.end()) {
 		// Haven't found the layer added earlier - should not happen!
-		fprintf(stderr, "WARN: layer %s has geometry (v)", layerName.c_str());
+		fprintf(stderr, "layer %s has geometry (v)", layerName.c_str());
 		// Create it right now...
 		layersVertices[layerName] = std::vector<ObjMaster::VertexElement>{};
 	}
@@ -45,6 +45,33 @@ void ObjCreationAdapter::addV(
 
 	// Increment the last vertex number
 	++lastVerNo;
+}
+
+void ObjCreationAdapter::setVariableString(const std::string &key, const std::string &value, int code) {
+	fprintf(stderr, "=== String variable %s=%s (code:%d)\n", key.c_str(), value.c_str(), code);
+	stringVariables[key] = value;
+}
+
+void ObjCreationAdapter::setVariableVector(const std::string &key, double v1, double v2, double v3, int code){
+	fprintf(stderr, "=== Vector variable %s=[%f, %f, %f] (code:%d)\n", key.c_str(), v1, v2, v3, code);
+	// Handle all variables for later
+	auto val = std::make_tuple(v1, v2, v3);
+	vectorVariables[key] = val;
+
+	// Handle those that are nearly always needed
+	handleCommonVecVars(key, val);
+}
+
+void ObjCreationAdapter::handleCommonVecVars(const std::string &key, std::tuple<double, double, double> val) {
+	if(key == "$EXTMIN") {
+		// EXTMIN
+		extmin = val;
+		fprintf(stderr, "extmin found to be: [%f, %f, %f]\n", std::get<0>(val), std::get<1>(val), std::get<2>(val));
+	} else if(key == "$EXTMAX") {
+		// EXTMAX
+		extmax = val;
+		fprintf(stderr, "extmax found to be: [%f, %f, %f]\n", std::get<0>(val), std::get<1>(val), std::get<2>(val));
+	}
 }
 
 /**
@@ -168,7 +195,7 @@ void ObjCreationAdapter::addVertex(const DL_VertexData& data) {
 		// Add a line referencing these two vertexes in the final result
 		// The two last vertices are the one we added right now above and the earlier added one with addVertex
 		// TODO/FIXME: This way if there are points while the vertexes of a polyline they got part of it too (maybe ok)
-		addL(lastVerNo-1, lastVerNo, layersLines, attributes.getLayer());
+		//addL(lastVerNo-1, lastVerNo, layersLines, attributes.getLayer());
 	}
 }
 

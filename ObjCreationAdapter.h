@@ -7,6 +7,8 @@
 
 #include <unordered_map>
 #include <unordered_set>
+#include <tuple>
+#include <limits>
 
 // The unit used for calculating the CAD values in meters in most cases
 // TODO: This only handles common cases though but it is good for now!
@@ -23,14 +25,14 @@ enum class PolyLineState {
 };
 
 /**
- * This class takes care of the entities read from the file.
- * Usually such a class would probably store the entities.
- * this one just prints some information about them to stdout.
- *
- * @author Andrew Mustun
+ * @orig_author Andrew Mustun
  */
 class ObjCreationAdapter : public DL_CreationAdapter {
 private:
+	// The borders of the drawing area - useful for clipping and stuff
+	std::tuple<double, double, double> extmin = std::make_tuple(std::numeric_limits<double>::min(), std::numeric_limits<double>::min(), std::numeric_limits<double>::min());
+	std::tuple<double, double, double> extmax = std::make_tuple(std::numeric_limits<double>::max(), std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
+	
 	// We are not in a polyline in the beginning of course
 	PolyLineState polyLineState = PolyLineState::NONE;
 	// Always contains the latest vertex number (across all layers)
@@ -43,24 +45,35 @@ private:
 	std::unordered_map<std::string, std::vector<ObjMaster::VertexElement>> layersVertices;
 	// The layer_name -> lines mapping
 	std::unordered_map<std::string, std::vector<ObjMaster::LineElement>> layersLines;
+	// String variables (key->value) mapping
+	std::unordered_map<std::string, std::string> stringVariables;
+	// Vector(3) variables (key->value) mapping
+	std::unordered_map<std::string, std::tuple<double, double, double>> vectorVariables;
 
 	// Local helper fun - only add edges with this please!
 	void addL(int b, int e, std::unordered_map<std::string, std::vector<ObjMaster::LineElement>> &layersLines, std::string layerName);
 	// Local helper fun - only add vertices with this please!
 	void addV(float x, float y, float z, std::unordered_map<std::string, std::vector<ObjMaster::VertexElement>> &layersVertices, std::string layerName);
+	/** Handles common vector variable saving for those we are nearly always interested in */
+	void handleCommonVecVars(const std::string &key, std::tuple<double, double, double> val);
 public:
 	ObjCreationAdapter();
 
-	virtual void addLayer(const DL_LayerData& data);
-	virtual void addPoint(const DL_PointData& data);
-	virtual void addLine(const DL_LineData& data);
-	virtual void addArc(const DL_ArcData& data);
-	virtual void addCircle(const DL_CircleData& data);
-	virtual void addPolyline(const DL_PolylineData& data);
-	virtual void endSequence();	// POLY ENDS HERE (normally)
-	virtual void endBlock();	// POLY ENDS HERE (not so normal however)
-	virtual void addVertex(const DL_VertexData& data);
-	virtual void add3dFace(const DL_3dFaceData& data);
+	// Variables...
+	virtual void setVariableString(const std::string &key, const std::string &value, int code) override;
+	virtual void setVariableVector(const std::string &key, double v1, double v2, double v3, int code) override;
+
+	// Various drawing elements
+	virtual void addLayer(const DL_LayerData& data) override;
+	virtual void addPoint(const DL_PointData& data) override;
+	virtual void addLine(const DL_LineData& data) override;
+	virtual void addArc(const DL_ArcData& data) override;
+	virtual void addCircle(const DL_CircleData& data) override;
+	virtual void addPolyline(const DL_PolylineData& data) override;
+	virtual void endSequence() override;	// POLY ENDS HERE (normally)
+	virtual void endBlock() override;	// POLY ENDS HERE (not so normal however)
+	virtual void addVertex(const DL_VertexData& data) override;
+	virtual void add3dFace(const DL_3dFaceData& data) override;
 
 	void printAttributes();
 
