@@ -45,7 +45,7 @@ private:
 	// All layer names
 	std::unordered_set<std::string> layerNames;
 	// The layer_name -> vertices mapping
-	std::unordered_map<std::string, std::vector<ObjMaster::VertexElement>> layersVertices;
+	std::vector<ObjMaster::VertexElement> allVertices;
 	// The layer_name -> lines mapping
 	std::unordered_map<std::string, std::vector<ObjMaster::LineElement>> layersLines;
 	// String variables (key->value) mapping
@@ -54,11 +54,14 @@ private:
 	std::unordered_map<std::string, std::tuple<double, double, double>> vectorVariables;
 
 	// Local helper fun - only add edges with this please!
-	void addL(int b, int e, std::unordered_map<std::string, std::vector<ObjMaster::LineElement>> &layersLines, std::string layerName);
+	void addL(int b, int e, std::string layerName);
 	// Local helper fun - only add vertices with this please!
-	void addV(float x, float y, float z, std::unordered_map<std::string, std::vector<ObjMaster::VertexElement>> &layersVertices, std::string layerName);
+	void addV(float x, float y, float z);
 	/** Handles common vector variable saving for those we are nearly always interested in */
 	void handleCommonVecVars(const std::string &key, std::tuple<double, double, double> val);
+
+	/** Checks if point is in extmin_m and extmax_m or not */
+	bool checkExtentsFor(float x, float y, float z);
 public:
 	ObjCreationAdapter();
 

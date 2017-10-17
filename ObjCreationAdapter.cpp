@@ -11,7 +11,7 @@ ObjCreationAdapter::ObjCreationAdapter() {
 }
 
 // Local helper fun - only add edges with this please!
-void ObjCreationAdapter::addL(int b, int e, std::unordered_map<std::string, std::vector<ObjMaster::LineElement>> &layersLines, std::string layerName) {
+void ObjCreationAdapter::addL(int b, int e, std::string layerName) {
 	fprintf(stderr, "Added line %d, %d!\n", b, e);
 	// Sanity check
 	auto evec = layersLines.find(layerName);
@@ -27,21 +27,9 @@ void ObjCreationAdapter::addL(int b, int e, std::unordered_map<std::string, std:
 }
 
 // Local helper fun - only add vertices with this please!
-void ObjCreationAdapter::addV(
-		float x, float y, float z,
-	   	std::unordered_map<std::string, std::vector<ObjMaster::VertexElement>> &layersVertices,
-		std::string layerName) {
-	// Sanity check
-	auto vervec = layersVertices.find(layerName);
-	if(vervec == layersVertices.end()) {
-		// Haven't found the layer added earlier - should not happen!
-		fprintf(stderr, "layer %s has geometry (v)", layerName.c_str());
-		// Create it right now...
-		layersVertices[layerName] = std::vector<ObjMaster::VertexElement>{};
-	}
-
+void ObjCreationAdapter::addV(float x, float y, float z) {
 	// Add this new vertex to the end of that vector
-	layersVertices[layerName].push_back(ObjMaster::VertexElement{x*METER, y*METER, z*METER});
+	allVertices.push_back(ObjMaster::VertexElement{x*METER, y*METER, z*METER});
 
 	// Increment the last vertex number
 	++lastVerNo;
@@ -71,9 +59,29 @@ void ObjCreationAdapter::handleCommonVecVars(const std::string &key, std::tuple<
 	} else if(key == "$EXTMAX") {
 		// EXTMAX
 		extmax = val;
-		extmin_m = std::make_tuple(std::get<0>(val)*METER, std::get<1>(val)*METER, std::get<2>(val)*METER);
+		extmax_m = std::make_tuple(std::get<0>(val)*METER, std::get<1>(val)*METER, std::get<2>(val)*METER);
 		fprintf(stderr, "extmax found to be: [%f, %f, %f]\n", std::get<0>(val), std::get<1>(val), std::get<2>(val));
 	}
+}
+	
+bool ObjCreationAdapter::checkExtentsFor(float x, float y, float z) {
+	// min
+	auto minx = std::get<0>(extmin);
+	auto miny = std::get<1>(extmin);
+	auto minz = std::get<2>(extmin);
+	// max
+	auto maxx = std::get<0>(extmax);
+	auto maxy = std::get<1>(extmax);
+	auto maxz = std::get<2>(extmax);
+
+	fprintf(stderr, ">>> DEBUG >>> minx, miny, minz = %f, %f, %f\n", minx, miny, minz);
+	fprintf(stderr, ">>> DEBUG >>> maxx, maxy, maxz = %f, %f, %f\n", maxx, maxy, maxz);
+	fprintf(stderr, ">>> DEBUG >>> x, y, z = %f, %f, %f\n", x, y, z);
+
+	// true if we are in the clipped area - otherwise false
+	return ((minx <= x) && (x <= maxx)) &&
+		((miny <= y) && (y <= maxy)) &&
+		((minz <= z) && (z <= maxz));
 }
 
 /**
@@ -95,8 +103,14 @@ void ObjCreationAdapter::addPoint(const DL_PointData& data) {
 		   data.x, data.y, data.z);
 	printAttributes();
 
+	// Check for boundaries
+	if(!checkExtentsFor(data.x, data.y, data.z)) {
+		fprintf(stderr, "POINT outside of extents!\n");
+		return;
+	}
+
 	// Add the vertexes
-	addV(data.x, data.y, data.z, layersVertices, attributes.getLayer());
+	addV(data.x, data.y, data.z);
 
 	// Handle polylines
 	if(polyLineState == PolyLineState::FIRST) {
@@ -107,7 +121,7 @@ void ObjCreationAdapter::addPoint(const DL_PointData& data) {
 		// Add a line referencing these two vertexes in the final result
 		// The two last vertices are the one we added right now above and the earlier added one with addVertex
 		// TODO/FIXME: This way if there are points while the vertexes of a polyline they got part of it too (maybe ok)
-		addL(lastVerNo-1, lastVerNo, layersLines, attributes.getLayer());
+		addL(lastVerNo-1, lastVerNo, attributes.getLayer());
 	}
 }
 
@@ -119,12 +133,21 @@ void ObjCreationAdapter::addLine(const DL_LineData& data) {
 		   data.x1, data.y1, data.z1, data.x2, data.y2, data.z2);
 	printAttributes();
 
+	// Check for boundaries
+	if(!checkExtentsFor(data.x1, data.y1, data.z1) || !checkExtentsFor(data.x2, data.y2, data.z2)) {
+		fprintf(stderr, "LINE outside of extents!\n");
+		return;
+	}
+
 	// Add the vertexes
-	addV(data.x1, data.y1, data.z1, layersVertices, attributes.getLayer());
-	addV(data.x2, data.y2, data.z2, layersVertices, attributes.getLayer());
+	fprintf(stderr, "lastVerNo - 1: %d\n", lastVerNo);
+	addV(data.x1, data.y1, data.z1);
+	fprintf(stderr, "lastVerNo - 2: %d\n", lastVerNo);
+	addV(data.x2, data.y2, data.z2);
+	fprintf(stderr, "lastVerNo - 3: %d\n", lastVerNo);
 	// Add a line referencing these two vertextes in the final result
 	// The two last vertices are the one we added right now above!
-	addL(lastVerNo-1, lastVerNo, layersLines, attributes.getLayer());
+	addL(lastVerNo-1, lastVerNo, attributes.getLayer());
 }
 
 /**
@@ -136,8 +159,14 @@ void ObjCreationAdapter::addArc(const DL_ArcData& data) {
 		   data.radius, data.angle1, data.angle2);
 	printAttributes();
 
+	// Check for boundaries
+	if(!checkExtentsFor(data.cx, data.cy, data.cz)) {
+		fprintf(stderr, "ARC outside of extents!\n");
+		return;
+	}
+
 	// TODO: Really bad "approximation" of arcs!!! to put a point there!
-	addV(data.cx, data.cy, data.cz, layersVertices, attributes.getLayer());
+	addV(data.cx, data.cy, data.cz);
 }
 
 /**
@@ -149,8 +178,14 @@ void ObjCreationAdapter::addCircle(const DL_CircleData& data) {
 		   data.radius);
 	printAttributes();
 
+	// Check for boundaries
+	if(!checkExtentsFor(data.cx, data.cy, data.cz)) {
+		fprintf(stderr, "CIRCLE outside of extents!\n");
+		return;
+	}
+
 	// TODO: it would be nice to at least build a 4-line square where the circle is...
-	addV(data.cx, data.cy, data.cz, layersVertices, attributes.getLayer());
+	addV(data.cx, data.cy, data.cz);
 }
 
 
@@ -185,8 +220,14 @@ void ObjCreationAdapter::addVertex(const DL_VertexData& data) {
 		   data.bulge);
 	printAttributes();
 
+	// Check for boundaries
+	if(!checkExtentsFor(data.x, data.y, data.z)) {
+		fprintf(stderr, "VERTEX outside of extents!\n");
+		return;
+	}
+
 	// Add the vertex
-	addV(data.x, data.y, data.z, layersVertices, attributes.getLayer());
+	addV(data.x, data.y, data.z);
 
 	// Handle polylines
 	if(polyLineState == PolyLineState::FIRST) {
@@ -208,7 +249,7 @@ void ObjCreationAdapter::add3dFace(const DL_3dFaceData& data) {
 			i, data.x[i], data.y[i], data.z[i]);
 		
 		// Add this vertex to the list
-		addV(data.x[i], data.y[i], data.z[i], layersVertices, attributes.getLayer());
+		addV(data.x[i], data.y[i], data.z[i]);
 	}
 	printAttributes();
 
@@ -242,17 +283,18 @@ void ObjCreationAdapter::printAttributes() {
 
 // TODO: when I have time for it, these should go in the Objmaster as saving an Obj and here we would build the Obj and not the string maybe
 void ObjCreationAdapter::sysOutAll() {
+	// Generate the vertices (for all layers)
+	for(auto v : allVertices) {
+		//printf("v %f %f %f\n", v.x, v.y, v.z);
+		printf("%s\n", v.asText().c_str());
+	}
+
+	// Generate connections like faces and lines
 	for(auto layerName : layerNames) {
 
 		// print the name of the layer as object names
 		printf("o %s\n", layerName.c_str());
 
-		// Generate the vertices for that layer
-	   	std::vector<ObjMaster::VertexElement> layerVertices = layersVertices[layerName];
-		for(auto v : layerVertices) {
-			//printf("v %f %f %f\n", v.x, v.y, v.z);
-			printf("%s\n", v.asText().c_str());
-		}
 
 		// Generate the lines for that layer
 	   	std::vector<ObjMaster::LineElement> layerLines = layersLines[layerName];
