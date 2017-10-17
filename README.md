@@ -1,2 +1,2 @@
 # dxf_obj
-A special kind of command line DFX-OBJ conversion utlity using dxflib
+A special kind of command line DFX-OBJ conversion utlity using dxflib - basically just a little POC...
